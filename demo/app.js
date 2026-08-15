@@ -11,6 +11,7 @@ const hintBtn = document.getElementById('hint-btn');
 const animateBtn = document.getElementById('animate-btn');
 const clearBtn = document.getElementById('clear-btn');
 const checkBtn = document.getElementById('check-btn');
+const walkthroughBtn = document.getElementById('walkthrough-btn');
 const exportBtn = document.getElementById('export-btn');
 
 const exportModal = document.getElementById('export-modal');
@@ -31,6 +32,8 @@ const speedInput = document.getElementById('speed-input');
 
 let writer = null;
 
+let iswalkthrough = false;
+
 function getOptions() {
     return {
         width: 300,
@@ -44,6 +47,7 @@ function getOptions() {
         showGhost: ghostToggle.checked,
         showGrid: gridToggle.checked,
         checkMode: checkModeSelect.value,
+        walkthrough:iswalkthrough,
         stepDuration: parseInt(speedInput.value, 10) || 500
     };
 }
@@ -148,6 +152,13 @@ animateBtn.addEventListener('click', () => {
 clearBtn.addEventListener('click', () => {
     if (writer) writer.clear();
 });
+
+walkthroughBtn.addEventListener('click', ()=> {
+    iswalkthrough = !iswalkthrough
+    if(writer)
+        writer.setOptions(getOptions())
+    console.log(writer.options.walkthrough)
+})
 
 checkBtn.addEventListener('click', () => {
     if (writer) {

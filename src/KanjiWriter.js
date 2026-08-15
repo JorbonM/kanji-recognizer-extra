@@ -19,6 +19,8 @@ export class KanjiWriter {
             showGhost: true,              // Show red guide for next stroke
             showGrid: true,               // Show the background grid
             checkMode: 'stroke',          // 'stroke' (immediate), 'full' (manual), or 'free' (no validation)
+            walkthrough: false,           // At each step show a user how to write the stroke
+
 
             // Appearance
             strokeWidth: 4,
@@ -120,6 +122,9 @@ export class KanjiWriter {
             path.style.opacity = i === this.currentStrokeIndex ? this.options.ghostOpacity : "0.1";
             this.bgGroup.appendChild(path);
         });
+
+        if(this.options.walkthrough)
+            this.hint()
     }
 
     getPointerPos(e) {
