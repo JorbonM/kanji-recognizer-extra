@@ -230,7 +230,7 @@ export class KanjiWriter {
 
         const result = this.recognizer.evaluate(this.currentPoints, targetD);
         console.log("Evaluation result:", result);
-        this.userScores.push(result)
+        this.userScores.push({...result,strokeNum:this.currentStrokeIndex})
 
         if (result.success) {
             this.onCorrect();
