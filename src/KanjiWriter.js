@@ -345,6 +345,7 @@ export class KanjiWriter {
         this.currentGroup.innerHTML = '';
         this.bgGroup.innerHTML = '';
         this.renderUpcomingStrokes();
+        this.userScores = [];
         console.log("Canvas cleared");
         if (this.onClear) this.onClear();
     }
