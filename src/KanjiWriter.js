@@ -47,6 +47,8 @@ export class KanjiWriter {
         this.width = this.options.width;
         this.height = this.options.height;
 
+        this.userScores = []
+
         console.log("Kanji data loaded:", kanjiData);
 
         this.initSVG();
@@ -228,6 +230,7 @@ export class KanjiWriter {
 
         const result = this.recognizer.evaluate(this.currentPoints, targetD);
         console.log("Evaluation result:", result);
+        this.userScores.push(result)
 
         if (result.success) {
             this.onCorrect();
