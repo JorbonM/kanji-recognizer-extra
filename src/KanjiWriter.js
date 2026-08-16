@@ -123,7 +123,7 @@ export class KanjiWriter {
             this.bgGroup.appendChild(path);
         });
 
-        if(this.options.walkthrough)
+        if(this.options.checkMode=='stroke' && this.options.walkthrough)
             this.hint()
     }
 
@@ -275,6 +275,9 @@ export class KanjiWriter {
         pathRef.style.transition = "opacity 0.5s";
         setTimeout(() => { pathRef.style.opacity = "0"; }, 100);
         setTimeout(() => { pathRef.remove(); }, 600);
+
+        if(this.options.checkMode=='stroke' && this.options.walkthrough)
+            this.hint()
     }
 
     /**
