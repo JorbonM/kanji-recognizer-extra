@@ -14,18 +14,20 @@ export class KanjiWriter {
             hintColor: "cyan",            // Hint animation color
             gridColor: "#ddd",            // Background grid color
             ghostColor: "#ff0000",        // Color of next stroke ghost
+            guideColor: "#ff0000",
 
             // Toggles
             showGhost: true,              // Show red guide for next stroke
             showGrid: true,               // Show the background grid
             checkMode: 'stroke',          // 'stroke' (immediate), 'full' (manual), or 'free' (no validation)
             walkthrough: false,           // At each step show a user how to write the stroke
-
+            guide: false,
 
             // Appearance
             strokeWidth: 4,
             gridWidth: 0.5,
-            ghostOpacity: "0.1",
+            ghostOpacity: "0.4",
+            guideOpacity: '0.1',
             ...options
         };
 
@@ -119,12 +121,30 @@ export class KanjiWriter {
             const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
             path.setAttribute("d", d);
             path.setAttribute("fill", "none");
-            path.setAttribute("stroke", i === this.currentStrokeIndex ? this.options.ghostColor : "#eee");
+
+            // path.setAttribute("stroke", i === this.currentStrokeIndex ? this.options.ghostColor : "#eee");
+
+
+            if(i===this.currentStrokeIndex)
+                path.setAttribute("stroke", this.options.ghostColor);
+            else if(i >this.currentStrokeIndex && this.options.guide)
+                path.setAttribute("stroke", this.options.guideColor);
+            else
+                path.setAttribute("stroke", "#eee");
+
             path.setAttribute("stroke-width", "2");
-            path.style.opacity = i === this.currentStrokeIndex ? this.options.ghostOpacity : "0.1";
+            
+            // path.style.opacity = i === this.currentStrokeIndex ? this.options.ghostOpacity : "0.4";
+
+            if(i===this.currentStrokeIndex)
+                path.style.opacity = this.options.ghostOpacity;
+            else if(i >this.currentStrokeIndex && this.options.guide)
+                path.style.opacity = this.options.guideOpacity;
+            else
+                path.style.opacity = '0.1';
             this.bgGroup.appendChild(path);
         });
-
+        
         if(this.options.checkMode=='stroke' && this.options.walkthrough)
             this.hint()
     }
