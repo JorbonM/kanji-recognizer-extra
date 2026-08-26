@@ -21,7 +21,7 @@ export class KanjiWriter {
             showGrid: true,               // Show the background grid
             checkMode: 'stroke',          // 'stroke' (immediate), 'full' (manual), or 'free' (no validation)
             walkthrough: false,           // At each step show a user how to write the stroke
-            guide: false,
+            guide: false,                 // Kanji has an outline for all strokes
 
             // Appearance
             strokeWidth: 4,
