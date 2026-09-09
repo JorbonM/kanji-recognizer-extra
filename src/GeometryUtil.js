@@ -80,7 +80,7 @@ export class GeometryUtil {
      */
     static compareStrokes(userPoints, targetPoints, options = {}) {
         const {
-            startDistThreshold = 50,
+            startDistThreshold = 100,
             translationWeight = 0.3, // How much absolute position matters (0-1)
             shapeWeight = 0.7        // How much shape accuracy matters (0-1)
         } = options;
@@ -116,12 +116,61 @@ export class GeometryUtil {
         }
         const shapeCost = shapeDist / resampledUser.length;
 
+        let totalAngleDist = 0;
+        let validPoints = 0;
+
+        for (let i = 1; i < resampledUser.length; i++) {
+
+            const userDx =
+                resampledUser[i].x - resampledUser[i - 1].x;
+
+            const userDy =
+                resampledUser[i].y - resampledUser[i - 1].y;
+
+            const targetDx =
+                resampledTarget[i].x - resampledTarget[i - 1].x;
+
+            const targetDy =
+                resampledTarget[i].y - resampledTarget[i - 1].y;
+
+            const userMag = Math.hypot(userDx, userDy);
+            const targetMag = Math.hypot(targetDx, targetDy);
+
+            // Avoid division by zero
+            if (userMag === 0 || targetMag === 0) {
+                continue;
+            }
+
+            let cosine =
+                (userDx * targetDx + userDy * targetDy) /
+                (userMag * targetMag);
+
+            // Protect against floating-point errors
+            cosine = Math.max(-1, Math.min(1, cosine));
+
+            const angle = Math.acos(cosine);
+
+            totalAngleDist += angle;
+            validPoints++;
+        }
+
+        const angleCost =
+            validPoints > 0
+                ? totalAngleDist / validPoints
+                : Math.PI;
+
+        
+        const userLen = GeometryUtil.getPathLength(userPoints);
+        const targetLen = GeometryUtil.getPathLength(targetPoints);
+        const ratio = userLen / targetLen;
+        const lengthCost = Math.abs(1 - ratio);
+        
         // 4. Combined weighted score
         // This is more robust because if you draw the right shape slightly shifted,
         // the shapeCost will be low, and translationCost will be moderate,
         // allowing it to pass even if the absolute coordinates are off.
         const totalScore = (shapeCost * shapeWeight) + (translationCost * translationWeight);
-
+        console.log(angleCost);
         console.log(`Recognition Debug - Shape: ${shapeCost.toFixed(2)}, Trans: ${translationCost.toFixed(2)}, Total: ${totalScore.toFixed(2)}`);
 
         return totalScore;

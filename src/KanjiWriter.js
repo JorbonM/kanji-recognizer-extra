@@ -33,10 +33,10 @@ export class KanjiWriter {
 
         // Initialize recognizer with threshold options
         this.recognizer = new StrokeRecognizer({
-            passThreshold: this.options.passThreshold || 15,
+            passThreshold: this.options.passThreshold || 4,
             startDistThreshold: this.options.startDistThreshold || 40,
-            lengthRatioMin: this.options.lengthRatioMin || 0.5,
-            lengthRatioMax: this.options.lengthRatioMax || 1.5,
+            lengthRatioMin: this.options.lengthRatioMin || 0.9,
+            lengthRatioMax: this.options.lengthRatioMax || 1.1,
             resamplingPoints: this.options.resamplingPoints || 64
         });
 
