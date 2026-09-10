@@ -70,8 +70,8 @@ export class StrokeRecognizer {
 
         const result = GeometryUtil.compareStrokes(userPoints, targetPoints, {
             startDistThreshold: this.options.startDistThreshold,
-            translationWeight: 0.4,
-            shapeWeight: 0.6
+            // translationWeight: 0.4,
+            // shapeWeight: 0.6
         });
 
         const score = result.score;
