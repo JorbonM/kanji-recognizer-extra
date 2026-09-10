@@ -64,15 +64,21 @@ export class StrokeRecognizer {
         const targetLen = GeometryUtil.getPathLength(targetPoints);
         const ratio = userLen / targetLen;
 
-        const score = GeometryUtil.compareStrokes(userPoints, targetPoints, {
+        if (ratio < this.options.lengthRatioMin || ratio > this.options.lengthRatioMax) {
+            return { success: false, score: 100, message: "Length mismatch" };
+        }
+
+        const result = GeometryUtil.compareStrokes(userPoints, targetPoints, {
             startDistThreshold: this.options.startDistThreshold,
             translationWeight: 0.4,
             shapeWeight: 0.6
         });
+
+        const score = result.score;
         return {
             success: score < this.options.passThreshold,
-            score: score,
-            message: score < this.options.passThreshold ? "Good!" : "Try again"
+            message: score < this.options.passThreshold ? "Good!" : "Try again",
+            ...result
         };
     }
 }

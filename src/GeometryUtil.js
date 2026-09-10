@@ -72,17 +72,29 @@ export class GeometryUtil {
     }
 
     /**
-     * Compare two strokes. Returns a score (lower is better, 0 is perfect).
+     * Compare two strokes. Returns a score (lower is better, 0 is perfect) + its metrics.
      * Now includes translation normalization to be more robust.
      * @param {Array} userPoints - User's drawn points
      * @param {Array} targetPoints - Target stroke points
      * @param {Object} options - Thresholds and weights
      */
     static compareStrokes(userPoints, targetPoints, options = {}) {
+        // const {
+        //     startDistThreshold = 100,
+        //     translationWeight = 0.3, // How much absolute position matters (0-1)
+        //     shapeWeight = 0.7,        // How much shape accuracy matters (0-1)
+        //     startWeight = 0,
+        //     endWeight = 0,
+        //     lengthWeight =0
+        // } = options;
         const {
             startDistThreshold = 100,
-            translationWeight = 0.3, // How much absolute position matters (0-1)
-            shapeWeight = 0.7        // How much shape accuracy matters (0-1)
+            translationWeight = 0.1, // How much absolute position matters (0-1)
+            shapeWeight = 0.45,        // How much shape accuracy matters (0-1)
+            startWeight = 0.1,
+            endWeight = 0.1,
+            lengthWeight =0.1,
+            directionWeight = 0.15,
         } = options;
 
         const resampledUser = this.resample(userPoints);
@@ -160,6 +172,8 @@ export class GeometryUtil {
                 : Math.PI;
 
         
+        const endDist = this.distance(resampledUser.at(-1), resampledTarget.at(-1));
+
         const userLen = GeometryUtil.getPathLength(userPoints);
         const targetLen = GeometryUtil.getPathLength(targetPoints);
         const ratio = userLen / targetLen;
@@ -169,10 +183,21 @@ export class GeometryUtil {
         // This is more robust because if you draw the right shape slightly shifted,
         // the shapeCost will be low, and translationCost will be moderate,
         // allowing it to pass even if the absolute coordinates are off.
-        const totalScore = (shapeCost * shapeWeight) + (translationCost * translationWeight);
-        console.log(angleCost);
-        console.log(`Recognition Debug - Shape: ${shapeCost.toFixed(2)}, Trans: ${translationCost.toFixed(2)}, Total: ${totalScore.toFixed(2)}`);
+        // const totalScore = (shapeCost * shapeWeight) + (translationCost * translationWeight);
 
-        return totalScore;
+        const totalScore = (shapeCost * shapeWeight) +
+                        (translationCost * translationWeight) +
+                        (startDist * startWeight)+
+                        (endDist * endWeight) +
+                        (angleCost*directionWeight) +
+                        (lengthCost * lengthWeight);
+        console.log(`Recognition Debug - Shape: ${shapeCost.toFixed(2)}, Trans: ${translationCost.toFixed(2)}, Total: ${totalScore.toFixed(2)}`);
+        console.log(`Start Dist: ${startDist}, End Dist: ${endDist}, Angle Cost: ${angleCost}, Length Cost: ${lengthCost}`);
+
+        const result = {score:totalScore,shapeCost: shapeCost, translationCost:translationCost,startDist:startDist,endDist,
+            angleCost:angleCost,lengthCost:lengthCost,
+        }
+
+        return result;
     }
 }
