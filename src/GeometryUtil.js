@@ -103,7 +103,6 @@ export class GeometryUtil {
         // 1. Initial Position Check
         // We still want the stroke to start *somewhere* near the expected start
         const startDist = this.distance(resampledUser[0], resampledTarget[0]);
-        if (startDist > startDistThreshold) return Infinity;
 
         // 2. Alignment (Translation Normalization)
         // Calculate centroids

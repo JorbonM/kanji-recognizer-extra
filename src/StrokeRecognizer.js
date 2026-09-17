@@ -53,9 +53,9 @@ export class StrokeRecognizer {
      * @param {string} targetD - The SVG path data of the *expected* next stroke
      */
     evaluate(userPoints, targetD) {
-        if (!userPoints || userPoints.length < 2) {
-            return { success: false, score: Infinity, message: "Too short" };
-        }
+        // if (!userPoints || userPoints.length < 2) {
+        //     return { success: false, score: Infinity, message: "Too short" };
+        // }
 
         const targetPoints = this.getPathPoints(targetD);
 
@@ -64,9 +64,9 @@ export class StrokeRecognizer {
         const targetLen = GeometryUtil.getPathLength(targetPoints);
         const ratio = userLen / targetLen;
 
-        if (ratio < this.options.lengthRatioMin || ratio > this.options.lengthRatioMax) {
-            return { success: false, score: 100, message: "Length mismatch" };
-        }
+        // if (ratio < this.options.lengthRatioMin || ratio > this.options.lengthRatioMax) {
+        //     return { success: false, score: 100, message: "Length mismatch" };
+        // }
 
         const result = GeometryUtil.compareStrokes(userPoints, targetPoints, {
             startDistThreshold: this.options.startDistThreshold,
