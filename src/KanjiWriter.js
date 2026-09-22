@@ -1,4 +1,5 @@
 import { StrokeRecognizer } from './StrokeRecognizer.js';
+import { Levels } from './Levels.js';
 
 export class KanjiWriter {
     constructor(elementId, kanjiData, options = {}) {
@@ -28,6 +29,9 @@ export class KanjiWriter {
             gridWidth: 0.5,
             ghostOpacity: "0.4",
             guideOpacity: '0.1',
+
+            //levels
+            level:null,
             ...options
         };
 
@@ -50,6 +54,8 @@ export class KanjiWriter {
         this.height = this.options.height;
 
         this.userScores = []
+
+        this.hints = 0
 
         console.log("Kanji data loaded:", kanjiData);
 
@@ -108,6 +114,99 @@ export class KanjiWriter {
             line.setAttribute(k, v);
         }
         parent.appendChild(line);
+    }
+
+    displayingFullKanji(d,i){
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", d);
+        path.setAttribute("fill", "none");
+
+        // path.setAttribute("stroke", i === this.currentStrokeIndex ? this.options.ghostColor : "#eee");
+
+
+        if(i===this.currentStrokeIndex)
+        {
+            if(this.options.level<Levels.L3)
+                path.setAttribute("stroke", this.options.ghostColor);
+            else
+                path.setAttribute("stroke", this.options.guideColor);
+        }
+        else if(i >this.currentStrokeIndex && this.options.guide)
+            path.setAttribute("stroke", this.options.guideColor);
+        else
+            path.setAttribute("stroke", "#eee");
+
+        path.setAttribute("stroke-width", "2");
+        // path.style.opacity = i === this.currentStrokeIndex ? this.options.ghostOpacity : "0.4";
+
+        if(i===this.currentStrokeIndex)
+        {
+            if(this.options.level<Levels.L3)
+                path.style.opacity = this.options.ghostOpacity;
+            else
+                path.style.opacity = this.options.guideOpacity;
+        }
+        else if(i >this.currentStrokeIndex && this.options.guide)
+            path.style.opacity = this.options.guideOpacity;
+        else
+            path.style.opacity = '0.1';
+
+        return path;
+    }
+
+    initColourOpacity(i,e)
+    {
+        if(i===this.currentStrokeIndex)
+            e.setAttribute("stroke", this.options.ghostColor);
+        else if(i >this.currentStrokeIndex && this.options.guide)
+            e.setAttribute("stroke", this.options.guideColor);
+        else
+            e.setAttribute("stroke", "#eee");
+
+        // point.setAttribute("stroke-width", "2");
+        
+        // path.style.opacity = i === this.currentStrokeIndex ? this.options.ghostOpacity : "0.4";
+
+        if(i===this.currentStrokeIndex)
+            e.style.opacity = this.options.ghostOpacity;
+        else if(i >this.currentStrokeIndex && this.options.guide)
+            e.style.opacity = this.options.guideOpacity;
+        else
+            e.style.opacity = '0.1';
+    }
+
+    displayPoints(d,i){
+        const RADIUS = 5;
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", d);
+
+        const startPoint = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+
+        const tempStartPoint = path.getPointAtLength(0);
+
+        startPoint.setAttribute('cx',tempStartPoint.x);
+        startPoint.setAttribute('cy',tempStartPoint.y);
+
+        startPoint.setAttribute('r',RADIUS);
+
+        startPoint.setAttribute("fill", "blue");
+
+        // path.setAttribute("stroke", i === this.currentStrokeIndex ? this.options.ghostColor : "#eee");
+        this.initColourOpacity(i,startPoint);
+
+        const endPoint = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        const tempEndPoint = path.getPointAtLength(path.getTotalLength());
+
+        endPoint.setAttribute('cx',tempEndPoint.x);
+        endPoint.setAttribute('cy',tempEndPoint.y);
+
+        endPoint.setAttribute('r',RADIUS);
+
+        endPoint.setAttribute("fill", "orange");
+
+        this.initColourOpacity(i,endPoint);
+
+        return [startPoint,endPoint];
     }
 
     renderUpcomingStrokes() {
@@ -366,6 +465,7 @@ export class KanjiWriter {
         this.bgGroup.innerHTML = '';
         this.renderUpcomingStrokes();
         this.userScores = [];
+        this.hint = 0
         console.log("Canvas cleared");
         if (this.onClear) this.onClear();
     }
