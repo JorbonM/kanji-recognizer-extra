@@ -83,8 +83,8 @@ export class KanjiWriter {
         this.currentGroup = document.createElementNS("http://www.w3.org/2000/svg", "g"); // Current active stroke
 
         this.svg.appendChild(this.gridGroup);
-        this.svg.appendChild(this.bgGroup);
         this.svg.appendChild(this.drawnGroup);
+        this.svg.appendChild(this.bgGroup);
         this.svg.appendChild(this.currentGroup);
 
         this.container.appendChild(this.svg);
@@ -131,7 +131,7 @@ export class KanjiWriter {
             else
                 path.setAttribute("stroke", this.options.guideColor);
         }
-        else if(i >this.currentStrokeIndex && this.options.guide)
+        else if(i >this.currentStrokeIndex)
             path.setAttribute("stroke", this.options.guideColor);
         else
             path.setAttribute("stroke", "#eee");
@@ -141,24 +141,25 @@ export class KanjiWriter {
 
         if(i===this.currentStrokeIndex)
         {
-            if(this.options.level<Levels.L3)
+            path.style.opacity = this.options.ghostOpacity;
+        }
+        else if(i >this.currentStrokeIndex)
+            if(this.options.level==Levels.L3)
                 path.style.opacity = this.options.ghostOpacity;
             else
                 path.style.opacity = this.options.guideOpacity;
-        }
-        else if(i >this.currentStrokeIndex && this.options.guide)
-            path.style.opacity = this.options.guideOpacity;
+                
         else
-            path.style.opacity = '0.1';
+            path.style.opacity = '0';
 
-        return path;
+        return [path,null];
     }
 
     initColourOpacity(i,e)
     {
         if(i===this.currentStrokeIndex)
             e.setAttribute("stroke", this.options.ghostColor);
-        else if(i >this.currentStrokeIndex && this.options.guide)
+        else if(i >this.currentStrokeIndex)
             e.setAttribute("stroke", this.options.guideColor);
         else
             e.setAttribute("stroke", "#eee");
@@ -169,14 +170,14 @@ export class KanjiWriter {
 
         if(i===this.currentStrokeIndex)
             e.style.opacity = this.options.ghostOpacity;
-        else if(i >this.currentStrokeIndex && this.options.guide)
+        else if(i >this.currentStrokeIndex)
             e.style.opacity = this.options.guideOpacity;
         else
-            e.style.opacity = '0.1';
+            e.style.opacity = '0';
     }
 
     displayPoints(d,i){
-        const RADIUS = 5;
+        const RADIUS = 1;
         const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
         path.setAttribute("d", d);
 
@@ -217,34 +218,74 @@ export class KanjiWriter {
 
         // If we want to show the full ghost:
         this.kanjiData.forEach((d, i) => {
-            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            path.setAttribute("d", d);
-            path.setAttribute("fill", "none");
+            // const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            // path.setAttribute("d", d);
+            // path.setAttribute("fill", "none");
 
-            // path.setAttribute("stroke", i === this.currentStrokeIndex ? this.options.ghostColor : "#eee");
+            // // path.setAttribute("stroke", i === this.currentStrokeIndex ? this.options.ghostColor : "#eee");
 
 
-            if(i===this.currentStrokeIndex)
-                path.setAttribute("stroke", this.options.ghostColor);
-            else if(i >this.currentStrokeIndex && this.options.guide)
-                path.setAttribute("stroke", this.options.guideColor);
-            else
-                path.setAttribute("stroke", "#eee");
+            // if(i===this.currentStrokeIndex)
+            //     path.setAttribute("stroke", this.options.ghostColor);
+            // else if(i >this.currentStrokeIndex && this.options.guide)
+            //     path.setAttribute("stroke", this.options.guideColor);
+            // else
+            //     path.setAttribute("stroke", "#eee");
 
-            path.setAttribute("stroke-width", "2");
+            // path.setAttribute("stroke-width", "2");
             
-            // path.style.opacity = i === this.currentStrokeIndex ? this.options.ghostOpacity : "0.4";
+            // // path.style.opacity = i === this.currentStrokeIndex ? this.options.ghostOpacity : "0.4";
 
-            if(i===this.currentStrokeIndex)
-                path.style.opacity = this.options.ghostOpacity;
-            else if(i >this.currentStrokeIndex && this.options.guide)
-                path.style.opacity = this.options.guideOpacity;
-            else
-                path.style.opacity = '0.1';
-            this.bgGroup.appendChild(path);
+            // if(i===this.currentStrokeIndex)
+            //     path.style.opacity = this.options.ghostOpacity;
+            // else if(i >this.currentStrokeIndex && this.options.guide)
+            //     path.style.opacity = this.options.guideOpacity;
+            // else
+            //     path.style.opacity = '0.1';
+            let path = null;
+            if(this.options.level < Levels.L4)
+            {
+                path = this.displayingFullKanji(d,i);
+                this.bgGroup.appendChild(path[0]);
+                return;
+            }
+            switch(this.options.level){
+                case Levels.L4:
+                    path = this.displayPoints(d,i);
+                    this.bgGroup.appendChild(path[0])
+                    this.bgGroup.appendChild(path[1])
+                    break;
+
+                case Levels.L5:
+                    path = this.displayPoints(d,i);
+                    this.bgGroup.appendChild(path[0])
+                    this.bgGroup.appendChild(path[1])
+                    if(i+1 != this.kanjiData.length)
+                    {
+                        console.log("faker")
+                        let fake_path = this.displayPoints(this.kanjiData[i+1],i+1);
+                        this.bgGroup.appendChild(fake_path[0])
+                        this.bgGroup.appendChild(fake_path[1])
+                    }
+                    break
+
+                case Levels.L6:
+
+                    break;
+
+                case Levels.L7:
+
+                    break;
+
+                case Levels.L8:
+
+                    break;
+
+            }
+
         });
         
-        if(this.options.checkMode=='stroke' && this.options.walkthrough)
+        if(this.options.checkMode=='stroke' && this.options.level == Levels.L1)
             this.hint()
     }
 

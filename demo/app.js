@@ -1,4 +1,5 @@
 import { KanjiWriter, KanjiVGParser } from '../src/index.js';
+import { Levels } from '../src/Levels.js';
 
 const statusEl = document.getElementById('status-text');
 const inputEl = document.getElementById('kanji-input');
@@ -29,10 +30,12 @@ const gridColorInput = document.getElementById('grid-color');
 const ghostToggle = document.getElementById('ghost-toggle');
 const gridToggle = document.getElementById('grid-toggle');
 const speedInput = document.getElementById('speed-input');
+const levelsInput = document.getElementById('level-d');
+
 
 let writer = null;
-
 let iswalkthrough = false;
+let level = "L1";
 
 function getOptions() {
     return {
@@ -48,6 +51,7 @@ function getOptions() {
         showGrid: gridToggle.checked,
         checkMode: checkModeSelect.value,
         walkthrough:iswalkthrough,
+        level: Levels[level],
         stepDuration: parseInt(speedInput.value, 10) || 500
     };
 }
@@ -171,6 +175,14 @@ checkBtn.addEventListener('click', () => {
             statusEl.style.color = "red";
         }
     }
+});
+
+levelsInput.addEventListener("change",()=>
+{
+    console.log(levelsInput.value);
+    level = levelsInput.value;
+    if(writer)
+        writer.setOptions(getOptions());
 });
 
 exportBtn.addEventListener('click', async () => {
