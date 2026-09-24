@@ -1,4 +1,5 @@
 import { StrokeRecognizer } from './StrokeRecognizer.js';
+import { Levels } from './Levels.js';
 
 export class KanjiWriter {
     constructor(elementId, kanjiData, options = {}) {
@@ -28,6 +29,9 @@ export class KanjiWriter {
             gridWidth: 0.5,
             ghostOpacity: "0.4",
             guideOpacity: '0.1',
+
+            //levels
+            level:null,
             ...options
         };
 
@@ -50,6 +54,8 @@ export class KanjiWriter {
         this.height = this.options.height;
 
         this.userScores = []
+
+        this.hints = 0
 
         console.log("Kanji data loaded:", kanjiData);
 
@@ -77,8 +83,8 @@ export class KanjiWriter {
         this.currentGroup = document.createElementNS("http://www.w3.org/2000/svg", "g"); // Current active stroke
 
         this.svg.appendChild(this.gridGroup);
-        this.svg.appendChild(this.bgGroup);
         this.svg.appendChild(this.drawnGroup);
+        this.svg.appendChild(this.bgGroup);
         this.svg.appendChild(this.currentGroup);
 
         this.container.appendChild(this.svg);
@@ -110,6 +116,100 @@ export class KanjiWriter {
         parent.appendChild(line);
     }
 
+    displayingFullKanji(d,i){
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", d);
+        path.setAttribute("fill", "none");
+
+        // path.setAttribute("stroke", i === this.currentStrokeIndex ? this.options.ghostColor : "#eee");
+
+
+        if(i===this.currentStrokeIndex)
+        {
+            if(this.options.level<Levels.L3)
+                path.setAttribute("stroke", this.options.ghostColor);
+            else
+                path.setAttribute("stroke", this.options.guideColor);
+        }
+        else if(i >this.currentStrokeIndex)
+            path.setAttribute("stroke", this.options.guideColor);
+        else
+            path.setAttribute("stroke", "#eee");
+
+        path.setAttribute("stroke-width", "2");
+        // path.style.opacity = i === this.currentStrokeIndex ? this.options.ghostOpacity : "0.4";
+
+        if(i===this.currentStrokeIndex)
+        {
+            path.style.opacity = this.options.ghostOpacity;
+        }
+        else if(i >this.currentStrokeIndex)
+            if(this.options.level==Levels.L3)
+                path.style.opacity = this.options.ghostOpacity;
+            else
+                path.style.opacity = this.options.guideOpacity;
+                
+        else
+            path.style.opacity = '0';
+
+        return [path,null];
+    }
+
+    initColourOpacity(i,e,displayPoint)
+    {
+        if(i===displayPoint)
+            e.setAttribute("stroke", this.options.ghostColor);
+        else if(i >displayPoint && this.options.level == Levels.L7)
+            e.setAttribute("stroke", this.options.ghostColor);
+        else
+            e.setAttribute("stroke", "#eee");
+
+        // point.setAttribute("stroke-width", "2");
+        
+        // path.style.opacity = i === this.currentStrokeIndex ? this.options.ghostOpacity : "0.4";
+
+        if(i===displayPoint)
+            e.style.opacity = this.options.ghostOpacity;
+        else if(i >displayPoint && this.options.level == Levels.L7)
+            e.style.opacity = this.options.ghostOpacity;
+        else
+            e.style.opacity = '0';
+    }
+
+    displayPoints(d,i,displayPoint=this.currentStrokeIndex){
+        const RADIUS = 1;
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", d);
+
+        const startPoint = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+
+        const tempStartPoint = path.getPointAtLength(0);
+
+        startPoint.setAttribute('cx',tempStartPoint.x);
+        startPoint.setAttribute('cy',tempStartPoint.y);
+
+        startPoint.setAttribute('r',RADIUS);
+
+        startPoint.setAttribute("fill", "blue");
+
+        // path.setAttribute("stroke", i === this.currentStrokeIndex ? this.options.ghostColor : "#eee");
+        this.initColourOpacity(i,startPoint,displayPoint);
+
+        const endPoint = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        const tempEndPoint = path.getPointAtLength(path.getTotalLength());
+
+        endPoint.setAttribute('cx',tempEndPoint.x);
+        endPoint.setAttribute('cy',tempEndPoint.y);
+
+        endPoint.setAttribute('r',RADIUS);
+
+        endPoint.setAttribute("fill", "orange");
+
+        this.initColourOpacity(i,endPoint,displayPoint);
+
+        return [startPoint,endPoint];
+    }
+
     renderUpcomingStrokes() {
         // Optional: render faint outline of the next stroke
         this.bgGroup.innerHTML = '';
@@ -118,34 +218,53 @@ export class KanjiWriter {
 
         // If we want to show the full ghost:
         this.kanjiData.forEach((d, i) => {
-            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            path.setAttribute("d", d);
-            path.setAttribute("fill", "none");
+            let path = null;
+            if(this.options.level < Levels.L4)
+            {
+                path = this.displayingFullKanji(d,i);
+                this.bgGroup.appendChild(path[0]);
+                return;
+            }
+            switch(this.options.level){
+                case Levels.L4:
+                    path = this.displayPoints(d,i);
+                    this.bgGroup.appendChild(path[0])
+                    this.bgGroup.appendChild(path[1])
+                    break;
 
-            // path.setAttribute("stroke", i === this.currentStrokeIndex ? this.options.ghostColor : "#eee");
+                case Levels.L5:
+                    if(i == this.currentStrokeIndex)
+                    {
+                        path = this.displayPoints(d,i);
+                        this.bgGroup.appendChild(path[0])
+                        this.bgGroup.appendChild(path[1])
+                        if(i+1 != this.kanjiData.length)
+                        {
+                            let fake_path = this.displayPoints(this.kanjiData[i+1],i+1,this.currentStrokeIndex+1);
+                            this.bgGroup.appendChild(fake_path[0])
+                            this.bgGroup.appendChild(fake_path[1])
+                        }
+                    }
+                    break
 
+                case Levels.L6:
+                    if(i == this.currentStrokeIndex)
+                    {
+                        path = this.displayPoints(d,i);
+                        this.bgGroup.appendChild(path[0])
+                    }
+                    break;
 
-            if(i===this.currentStrokeIndex)
-                path.setAttribute("stroke", this.options.ghostColor);
-            else if(i >this.currentStrokeIndex && this.options.guide)
-                path.setAttribute("stroke", this.options.guideColor);
-            else
-                path.setAttribute("stroke", "#eee");
+                case Levels.L7:
+                    path = this.displayPoints(d,i);
+                    this.bgGroup.appendChild(path[0])
+                    break;
 
-            path.setAttribute("stroke-width", "2");
-            
-            // path.style.opacity = i === this.currentStrokeIndex ? this.options.ghostOpacity : "0.4";
+            }
 
-            if(i===this.currentStrokeIndex)
-                path.style.opacity = this.options.ghostOpacity;
-            else if(i >this.currentStrokeIndex && this.options.guide)
-                path.style.opacity = this.options.guideOpacity;
-            else
-                path.style.opacity = '0.1';
-            this.bgGroup.appendChild(path);
         });
         
-        if(this.options.checkMode=='stroke' && this.options.walkthrough)
+        if(this.options.checkMode=='stroke' && this.options.level == Levels.L1)
             this.hint()
     }
 
@@ -366,6 +485,7 @@ export class KanjiWriter {
         this.bgGroup.innerHTML = '';
         this.renderUpcomingStrokes();
         this.userScores = [];
+        this.hint = 0
         console.log("Canvas cleared");
         if (this.onClear) this.onClear();
     }
